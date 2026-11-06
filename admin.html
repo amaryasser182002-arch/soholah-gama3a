@@ -8,57 +8,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* تنسيقات إضافية خاصة بلوحة الإدارة */
-        .admin-container {
-            max-width: 800px;
-        }
+        .admin-container { max-width: 800px; }
         .admin-card {
-            background-color: #fcfcfc;
-            border: 1px solid #ddd;
-            border-right: 5px solid #5b2c93;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            background-color: #fcfcfc; border: 1px solid #ddd;
+            border-right: 5px solid #5b2c93; padding: 20px;
+            margin-bottom: 15px; border-radius: 8px; display: flex;
+            flex-direction: column; gap: 10px;
         }
         .admin-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            display: flex; gap: 10px; margin-top: 10px;
+            padding-top: 10px; border-top: 1px dashed #ddd;
         }
         .admin-input {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            flex: 1;
-            font-family: 'Cairo';
+            padding: 8px; border: 1px solid #ccc;
+            border-radius: 4px; flex: 1; font-family: 'Cairo';
         }
         .btn-approve {
-            background-color: #16a34a;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
+            background-color: #16a34a; color: white; border: none;
+            padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;
         }
         .btn-reject {
-            background-color: #dc2626;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
+            background-color: #dc2626; color: white; border: none;
+            padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;
         }
         #loginAdmin {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            max-width: 400px;
-            margin: 50px auto;
+            display: flex; flex-direction: column; gap: 15px;
+            max-width: 400px; margin: 50px auto;
+        }
+        .done-badge {
+            background: #eee; color: #555; padding: 5px 10px;
+            border-radius: 4px; font-size: 13px; font-weight: bold;
         }
     </style>
 </head>
@@ -69,59 +48,86 @@
             <p>مراجعة طلبات الطلاب وتحديد الرسوم</p>
         </div>
 
-        <!-- شاشة دخول المدير -->
         <div id="loginAdmin">
             <h3 style="text-align: center; color: #5b2c93;">تسجيل دخول الإدارة</h3>
             <input type="password" id="adminPassword" class="admin-input" placeholder="كلمة مرور الإدارة">
             <button class="submit-btn" onclick="checkAdmin()">دخول كمدير</button>
         </div>
 
-        <!-- لوحة التحكم (تظهر بعد الدخول) -->
         <div id="adminDashboard" style="display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="color: #5b2c93;">جميع الطلبات</h3>
-                <button onclick="fetchAdminRequests()" style="background: #5b2c93; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">تحديث الصفحة</button>
+                <h3 style="color: #5b2c93;">إدارة الطلبات</h3>
+                <button onclick="fetchAdminRequests()" style="background: #5b2c93; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">تحديث القائمة</button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchAdminTab('pending')">الطلبات الجديدة</button>
+                <button class="tab-btn" onclick="switchAdminTab('completed')">الطلبات المكتملة (تمت)</button>
             </div>
             
-            <div id="adminRequestsList">
+            <div id="pendingRequestsList">
+                <p style="text-align: center; color: #777;">جاري تحميل الطلبات...</p>
+            </div>
+
+            <div id="completedRequestsList" style="display: none;">
                 <p style="text-align: center; color: #777;">جاري تحميل الطلبات...</p>
             </div>
         </div>
     </div>
 
     <script>
-        // إعداد الاتصال بـ Supabase
         const supabaseUrl = 'https://pxbtwqdedcfrgqbqpaxg.supabase.co';
         const supabaseKey = 'sb_publishable_0yuYpcLQlbC2vISnoPBY6w_nTgSIDIK';
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // حماية بسيطة للوحة الإدارة
         function checkAdmin() {
-            const pass = document.getElementById('adminPassword').value;
-            // كلمة مرور الإدارة هي: 123456 (يمكنك تغييرها كما تحب من هنا)
-            if (pass === '123456') {
+            let pass = document.getElementById('adminPassword').value.trim();
+            
+            // تحويل الأرقام العربية إلى إنجليزية لتفادي خطأ الكيبورد
+            pass = pass.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
+
+            // يمكنك الدخول بكتابة 123456 أو كلمة admin
+            if (pass === '123456' || pass === 'admin') {
                 document.getElementById('loginAdmin').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
                 fetchAdminRequests();
             } else {
-                alert('كلمة المرور غير صحيحة!');
+                alert('كلمة المرور غير صحيحة! جرب كتابة كلمة admin');
             }
         }
 
-        // جلب جميع الطلبات
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if(tab === 'pending') {
+                document.getElementById('pendingRequestsList').style.display = 'block';
+                document.getElementById('completedRequestsList').style.display = 'none';
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            } else {
+                document.getElementById('pendingRequestsList').style.display = 'none';
+                document.getElementById('completedRequestsList').style.display = 'block';
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            }
+        }
+
         async function fetchAdminRequests() {
-            const list = document.getElementById('adminRequestsList');
-            list.innerHTML = '<p style="text-align: center; color: #777;">جاري تحميل الطلبات...</p>';
+            const pendingList = document.getElementById('pendingRequestsList');
+            const completedList = document.getElementById('completedRequestsList');
+            
+            pendingList.innerHTML = '<p style="text-align: center; color: #777;">جاري التحميل...</p>';
+            completedList.innerHTML = '<p style="text-align: center; color: #777;">جاري التحميل...</p>';
 
             const { data, error } = await supabaseClient.from('requests')
                 .select('*').order('created_at', { ascending: false });
 
             if (data && data.length > 0) {
-                list.innerHTML = '';
+                let pendingHTML = '';
+                let completedHTML = '';
+
                 data.forEach(req => {
                     let statusColor = req.status === 'قيد المراجعة' ? '#d97706' : (req.status === 'مرفوض' ? '#dc2626' : '#16a34a');
+                    let isCompleted = req.status !== 'قيد المراجعة';
                     
-                    list.innerHTML += `
+                    let cardHTML = `
                         <div class="admin-card">
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                                 <p><strong>الخدمة:</strong> ${req.service_type}</p>
@@ -130,22 +136,37 @@
                                 <p><strong>الكلية:</strong> ${req.college}</p>
                                 ${req.year ? `<p><strong>الفرقة:</strong> ${req.year}</p>` : ''}
                                 <p><strong>الحالة:</strong> <span style="color: ${statusColor}; font-weight: bold;">${req.status}</span></p>
+                                ${isCompleted && req.fee !== 'في انتظار التحديد' ? `<p><strong>الرسوم:</strong> ${req.fee}</p>` : ''}
                             </div>
-                            
+                    `;
+
+                    if (!isCompleted) {
+                        cardHTML += `
                             <div class="admin-actions">
-                                <input type="text" id="fee_${req.id}" class="admin-input" placeholder="اكتب الرسوم هنا (مثال: 500 جنيه)" value="${req.fee !== 'في انتظار التحديد' ? req.fee : ''}">
+                                <input type="text" id="fee_${req.id}" class="admin-input" placeholder="اكتب الرسوم (مثال: 500 جنيه)">
                                 <button class="btn-approve" onclick="updateRequest(${req.id}, 'تمت الموافقة - يرجى الدفع')">موافقة</button>
                                 <button class="btn-reject" onclick="updateRequest(${req.id}, 'مرفوض')">رفض</button>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
+                        pendingHTML += cardHTML;
+                    } else {
+                        cardHTML += `
+                            <div class="admin-actions" style="justify-content: flex-end;">
+                                <span class="done-badge">تم الإجراء</span>
+                            </div>
+                        </div>`;
+                        completedHTML += cardHTML;
+                    }
                 });
+
+                pendingList.innerHTML = pendingHTML || '<p style="text-align: center; color: #777;">لا توجد طلبات جديدة للمراجعة.</p>';
+                completedList.innerHTML = completedHTML || '<p style="text-align: center; color: #777;">لا توجد طلبات مكتملة بعد.</p>';
             } else {
-                list.innerHTML = '<p style="text-align: center; color: #777;">لا توجد طلبات حتى الآن.</p>';
+                pendingList.innerHTML = '<p style="text-align: center; color: #777;">لا توجد طلبات حتى الآن.</p>';
+                completedList.innerHTML = '<p style="text-align: center; color: #777;">لا توجد طلبات حتى الآن.</p>';
             }
         }
 
-        // تحديث حالة الطلب والرسوم
         async function updateRequest(id, newStatus) {
             const feeInput = document.getElementById(`fee_${id}`).value;
             const finalFee = feeInput.trim() === '' ? 'لم يتم تحديد رسوم' : feeInput;
@@ -157,8 +178,7 @@
             if (error) {
                 alert('حدث خطأ أثناء التحديث');
             } else {
-                alert('تم تحديث الطلب بنجاح! سيراها الطالب في حسابه الآن.');
-                fetchAdminRequests(); // تحديث القائمة
+                fetchAdminRequests(); 
             }
         }
     </script>
