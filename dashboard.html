@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <!-- زر الواتساب -->
     <a href="https://wa.me/201023884009" target="_blank" class="whatsapp-float">
         💬 تواصل معنا واتساب
     </a>
@@ -21,7 +20,6 @@
             <button onclick="logout()" style="background: none; border: none; color: #d90606; cursor: pointer; text-decoration: underline; margin-top: 10px;">تسجيل الخروج</button>
         </div>
 
-        <!-- قائمة اختيار الخدمات الجديدة -->
         <div class="services-menu">
             <button class="service-btn" onclick="showLibrary()">📚 المكتبة (شراء كتب)</button>
             <button class="service-btn" onclick="showService('دفع المصروفات')">دفع المصروفات</button>
@@ -30,7 +28,6 @@
             <button class="service-btn" onclick="showService('بحث دبلومة')">عمل بحث دبلومة</button>
         </div>
 
-        <!-- مكتبة الكتب (تظهر عند الضغط على زر المكتبة) -->
         <div id="libraryContainer" style="display: none; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
             <h3 style="color: #5b2c93; text-align: center; margin-bottom: 15px;">المكتبة الجامعية - اختر كتابك</h3>
             <div class="library-grid">
@@ -61,21 +58,17 @@
             </div>
         </div>
 
-        <!-- نموذج طلب الخدمة -->
         <div id="serviceFormContainer" class="form-container" style="display: none; margin-top: 20px;">
             <h3 id="serviceTitle" style="color: #5b2c93; margin-bottom: 15px; text-align: center;"></h3>
             <form id="serviceForm" class="form-box">
                 <input type="text" id="uniCode" placeholder="الكود الجامعي" required>
                 <input type="text" id="college" placeholder="الكلية" required>
                 <input type="text" id="year" placeholder="الفرقة الدراسية" style="display: none;">
-                <!-- حقل جديد للبحوث -->
                 <input type="text" id="subject" placeholder="عنوان البحث المطلوب أو المادة" style="display: none;">
-                
                 <button type="submit" class="submit-btn" id="sendReqBtn">إرسال الطلب للمراجعة</button>
             </form>
         </div>
 
-        <!-- قسم متابعة حالة الطلب -->
         <div class="status-section">
             <h3 style="color: #5b2c93; margin-bottom: 15px;">طلباتي الحالية</h3>
             <div id="requestsList">
@@ -125,7 +118,6 @@
             currentService = service;
             title.innerText = 'طلب: ' + service;
             
-            // إخفاء الحقول الافتراضية
             yearInput.style.display = 'none';
             yearInput.required = false;
             subjectInput.style.display = 'none';
@@ -152,7 +144,6 @@
             const year = document.getElementById('year').value;
             const subject = document.getElementById('subject').value;
 
-            // دمج اسم المادة مع الكلية حتى يظهر لك في لوحة الإدارة بدون تغيير الداتا بيز
             if (subject !== '') {
                 college = college + ' | بحث/مادة: ' + subject;
             }
@@ -187,12 +178,25 @@
                 list.innerHTML = '';
                 data.forEach(req => {
                     let statusColor = req.status === 'قيد المراجعة' ? '#d97706' : (req.status === 'مرفوض' ? '#dc2626' : '#16a34a'); 
+                    
+                    let pdfButtons = '';
+                    // عرض أزرار التحميل إذا كان هناك رابط للملف
+                    if (req.file_url) {
+                        pdfButtons = `
+                            <div class="pdf-actions">
+                                <a href="${req.file_url}" target="_blank" class="btn-pdf">👁️ عرض </a>
+                                <a href="${req.file_url}" target="_blank" download class="btn-pdf btn-download">⬇️ تحميل PDF</a>
+                            </div>
+                        `;
+                    }
+
                     list.innerHTML += `
                         <div class="request-card">
                             <p><strong>نوع الخدمة:</strong> ${req.service_type}</p>
                             <p><strong>التفاصيل:</strong> ${req.college}</p>
                             <p><strong>حالة الطلب:</strong> <span style="color: ${statusColor}; font-weight: bold;">${req.status}</span></p>
                             <p><strong>رسوم الخدمة:</strong> <span>${req.fee}</span></p>
+                            ${pdfButtons}
                         </div>
                     `;
                 });

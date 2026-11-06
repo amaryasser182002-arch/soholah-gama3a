@@ -257,3 +257,60 @@ body {
     transform: scale(1.05);
     color: white;
 }
+/* تنسيقات بطاقة مسؤول المنصة */
+.manager-badge {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: #fff;
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+    width: 100%;
+    max-width: 450px;
+    border: 1px solid #eee;
+}
+.manager-badge img {
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #5b2c93;
+}
+.manager-info h4 {
+    color: #5b2c93;
+    margin-bottom: 2px;
+    font-size: 16px;
+}
+.manager-info p {
+    font-size: 13px;
+    color: #777;
+}
+
+/* تنسيقات أزرار الـ PDF */
+.pdf-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed #ddd;
+}
+.btn-pdf {
+    background-color: #5b2c93;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: 0.3s;
+    flex: 1;
+    justify-content: center;
+}
+.btn-pdf:hover { background-color: #5e2c94; color: white; }
+.btn-download { background-color: #16a34a; }
+.btn-download:hover { background-color: #15803d; }

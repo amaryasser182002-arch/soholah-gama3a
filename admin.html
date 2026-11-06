@@ -17,11 +17,11 @@
         }
         .admin-actions {
             display: flex; gap: 10px; margin-top: 10px;
-            padding-top: 10px; border-top: 1px dashed #ddd;
+            padding-top: 10px; border-top: 1px dashed #ddd; flex-wrap: wrap;
         }
         .admin-input {
             padding: 8px; border: 1px solid #ccc;
-            border-radius: 4px; flex: 1; font-family: 'Cairo';
+            border-radius: 4px; flex: 1; font-family: 'Cairo'; min-width: 200px;
         }
         .btn-approve {
             background-color: #16a34a; color: white; border: none;
@@ -45,7 +45,7 @@
     <div class="container admin-container">
         <div class="header">
             <h1>لوحة الإدارة</h1>
-            <p>مراجعة طلبات الطلاب وتحديد الرسوم</p>
+            <p>مراجعة طلبات الطلاب وتحديد الرسوم وإرسال الملفات</p>
         </div>
 
         <div id="loginAdmin">
@@ -82,11 +82,7 @@
 
         function checkAdmin() {
             let pass = document.getElementById('adminPassword').value.trim();
-            
-            // تحويل الأرقام العربية إلى إنجليزية لتفادي خطأ الكيبورد
             pass = pass.replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d));
-
-            // يمكنك الدخول بكتابة 123456 أو كلمة admin
             if (pass === '123456' || pass === 'admin') {
                 document.getElementById('loginAdmin').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
@@ -133,17 +129,19 @@
                                 <p><strong>الخدمة:</strong> ${req.service_type}</p>
                                 <p><strong>الرقم القومي:</strong> ${req.national_id}</p>
                                 <p><strong>الكود الجامعي:</strong> ${req.uni_code}</p>
-                                <p><strong>الكلية:</strong> ${req.college}</p>
+                                <p><strong>الكلية/التفاصيل:</strong> ${req.college}</p>
                                 ${req.year ? `<p><strong>الفرقة:</strong> ${req.year}</p>` : ''}
                                 <p><strong>الحالة:</strong> <span style="color: ${statusColor}; font-weight: bold;">${req.status}</span></p>
                                 ${isCompleted && req.fee !== 'في انتظار التحديد' ? `<p><strong>الرسوم:</strong> ${req.fee}</p>` : ''}
+                                ${req.file_url ? `<p><strong>ملف مرفق:</strong> <a href="${req.file_url}" target="_blank">رابط الـ PDF</a></p>` : ''}
                             </div>
                     `;
 
                     if (!isCompleted) {
                         cardHTML += `
                             <div class="admin-actions">
-                                <input type="text" id="fee_${req.id}" class="admin-input" placeholder="اكتب الرسوم (مثال: 500 جنيه)">
+                                <input type="text" id="fee_${req.id}" class="admin-input" placeholder="الرسوم (مثال: 500 جنيه)">
+                                <input type="text" id="file_${req.id}" class="admin-input" placeholder="رابط الملف (PDF) إذا وجد">
                                 <button class="btn-approve" onclick="updateRequest(${req.id}, 'تمت الموافقة - يرجى الدفع')">موافقة</button>
                                 <button class="btn-reject" onclick="updateRequest(${req.id}, 'مرفوض')">رفض</button>
                             </div>
@@ -170,9 +168,12 @@
         async function updateRequest(id, newStatus) {
             const feeInput = document.getElementById(`fee_${id}`).value;
             const finalFee = feeInput.trim() === '' ? 'لم يتم تحديد رسوم' : feeInput;
+            
+            const fileInput = document.getElementById(`file_${id}`);
+            const finalFileUrl = (fileInput && fileInput.value.trim() !== '') ? fileInput.value.trim() : null;
 
             const { data, error } = await supabaseClient.from('requests')
-                .update({ status: newStatus, fee: finalFee })
+                .update({ status: newStatus, fee: finalFee, file_url: finalFileUrl })
                 .eq('id', id);
 
             if (error) {
