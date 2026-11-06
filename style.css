@@ -8,10 +8,11 @@
 body {
     background-color: #f4f4f9;
     display: flex;
-    justify-content: center;
+    flex-direction: column; /* تم التعديل لعرض الأقسام بشكل طولي */
     align-items: center;
     min-height: 100vh;
     color: #333;
+    padding: 40px 20px;
 }
 
 .container {
@@ -30,7 +31,7 @@ body {
 }
 
 .header h1 {
-    color: #5b2c93; /* اللون البنفسجي الأساسي */
+    color: #5b2c93;
     font-size: 28px;
     margin-bottom: 5px;
 }
@@ -111,15 +112,16 @@ body {
     color: #444;
     margin-bottom: 5px;
 }
-/* تنسيقات لوحة تحكم الطالب */
+
+/* تنسيقات لوحة الطالب */
 .dashboard-container {
     background-color: #fff;
     width: 100%;
-    max-width: 600px;
+    max-width: 700px;
     border-radius: 12px;
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     padding: 30px;
-    margin: 20px;
+    margin-bottom: 30px;
 }
 
 .services-menu {
@@ -133,7 +135,7 @@ body {
     background-color: #f8f5fd;
     color: #5b2c93;
     border: 2px solid #5b2c93;
-    padding: 10px 20px;
+    padding: 10px 15px;
     border-radius: 8px;
     font-weight: bold;
     cursor: pointer;
@@ -166,12 +168,92 @@ body {
     font-size: 15px;
 }
 
-.status.pending {
-    color: #d97706;
+/* تنسيقات قسم المكتبة */
+.library-section {
+    width: 100%;
+    max-width: 800px;
+    margin: 30px auto;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.library-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.book-card {
+    background: #f8f5fd;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+    transition: 0.3s;
+}
+
+.book-card:hover {
+    border-color: #5b2c93;
+    transform: translateY(-5px);
+}
+
+.book-icon {
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+.book-title {
+    color: #5b2c93;
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 5px;
+}
+
+.book-desc {
+    color: #777;
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+.btn-buy {
+    background: #5b2c93;
+    color: white;
+    border: none;
+    padding: 8px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    font-family: 'Cairo';
     font-weight: bold;
 }
 
-.status.approved {
-    color: #16a34a;
+.btn-buy:hover { background: #5e2c94; }
+
+/* زر الواتساب العائم */
+.whatsapp-float {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25D366;
+    color: #fff;
+    border-radius: 50px;
+    padding: 12px 20px;
+    font-size: 16px;
     font-weight: bold;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    z-index: 1000;
+    transition: 0.3s;
+}
+
+.whatsapp-float:hover {
+    background-color: #1ebe57;
+    transform: scale(1.05);
+    color: white;
 }

@@ -9,6 +9,11 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- زر الواتساب -->
+    <a href="https://wa.me/201023884009" target="_blank" class="whatsapp-float">
+        💬 تواصل معنا واتساب
+    </a>
+
     <div class="dashboard-container">
         <div class="header">
             <h1 id="welcomeMsg">مرحباً بك</h1>
@@ -16,11 +21,44 @@
             <button onclick="logout()" style="background: none; border: none; color: #d90606; cursor: pointer; text-decoration: underline; margin-top: 10px;">تسجيل الخروج</button>
         </div>
 
-        <!-- قائمة اختيار الخدمات -->
+        <!-- قائمة اختيار الخدمات الجديدة -->
         <div class="services-menu">
+            <button class="service-btn" onclick="showLibrary()">📚 المكتبة (شراء كتب)</button>
             <button class="service-btn" onclick="showService('دفع المصروفات')">دفع المصروفات</button>
             <button class="service-btn" onclick="showService('الكشف الطبي')">الكشف الطبي</button>
-            <button class="service-btn" onclick="showService('شراء كتب')">شراء كتب الجامعة</button>
+            <button class="service-btn" onclick="showService('عمل بحث جامعي')">عمل بحث جامعي</button>
+            <button class="service-btn" onclick="showService('بحث دبلومة')">عمل بحث دبلومة</button>
+        </div>
+
+        <!-- مكتبة الكتب (تظهر عند الضغط على زر المكتبة) -->
+        <div id="libraryContainer" style="display: none; margin-top: 30px; border-top: 2px solid #eee; padding-top: 20px;">
+            <h3 style="color: #5b2c93; text-align: center; margin-bottom: 15px;">المكتبة الجامعية - اختر كتابك</h3>
+            <div class="library-grid">
+                <div class="book-card">
+                    <div class="book-icon">📖</div>
+                    <div class="book-title">الخلاصة في القانون</div>
+                    <div class="book-desc">الفرقة الأولى</div>
+                    <button class="btn-buy" onclick="orderBook('الخلاصة في القانون - الفرقة الأولى')">طلب هذا الكتاب</button>
+                </div>
+                <div class="book-card">
+                    <div class="book-icon">📘</div>
+                    <div class="book-title">الخلاصة في القانون</div>
+                    <div class="book-desc">الفرقة الثانية</div>
+                    <button class="btn-buy" onclick="orderBook('الخلاصة في القانون - الفرقة الثانية')">طلب هذا الكتاب</button>
+                </div>
+                <div class="book-card">
+                    <div class="book-icon">📙</div>
+                    <div class="book-title">الخلاصة في القانون</div>
+                    <div class="book-desc">الفرقة الثالثة</div>
+                    <button class="btn-buy" onclick="orderBook('الخلاصة في القانون - الفرقة الثالثة')">طلب هذا الكتاب</button>
+                </div>
+                <div class="book-card">
+                    <div class="book-icon">📕</div>
+                    <div class="book-title">الخلاصة في القانون</div>
+                    <div class="book-desc">الفرقة الرابعة</div>
+                    <button class="btn-buy" onclick="orderBook('الخلاصة في القانون - الفرقة الرابعة')">طلب هذا الكتاب</button>
+                </div>
+            </div>
         </div>
 
         <!-- نموذج طلب الخدمة -->
@@ -30,6 +68,8 @@
                 <input type="text" id="uniCode" placeholder="الكود الجامعي" required>
                 <input type="text" id="college" placeholder="الكلية" required>
                 <input type="text" id="year" placeholder="الفرقة الدراسية" style="display: none;">
+                <!-- حقل جديد للبحوث -->
+                <input type="text" id="subject" placeholder="عنوان البحث المطلوب أو المادة" style="display: none;">
                 
                 <button type="submit" class="submit-btn" id="sendReqBtn">إرسال الطلب للمراجعة</button>
             </form>
@@ -50,12 +90,10 @@
     </div>
 
     <script>
-        // إعداد الاتصال بـ Supabase (تم التصحيح هنا)
         const supabaseUrl = 'https://pxbtwqdedcfrgqbqpaxg.supabase.co';
         const supabaseKey = 'sb_publishable_0yuYpcLQlbC2vISnoPBY6w_nTgSIDIK';
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        // التحقق من تسجيل الدخول
         const studentData = JSON.parse(localStorage.getItem('studentData'));
         if (!studentData) {
             window.location.href = 'index.html'; 
@@ -66,32 +104,58 @@
 
         let currentService = '';
 
+        function showLibrary() {
+            document.getElementById('serviceFormContainer').style.display = 'none';
+            document.getElementById('libraryContainer').style.display = 'block';
+        }
+
+        function orderBook(bookName) {
+            document.getElementById('libraryContainer').style.display = 'none';
+            showService('شراء كتاب: ' + bookName);
+        }
+
         function showService(service) {
+            document.getElementById('libraryContainer').style.display = 'none';
             document.getElementById('serviceFormContainer').style.display = 'block';
+            
             const yearInput = document.getElementById('year');
+            const subjectInput = document.getElementById('subject');
             const title = document.getElementById('serviceTitle');
 
             currentService = service;
             title.innerText = 'طلب: ' + service;
             
-            if (service === 'شراء كتب') {
+            // إخفاء الحقول الافتراضية
+            yearInput.style.display = 'none';
+            yearInput.required = false;
+            subjectInput.style.display = 'none';
+            subjectInput.required = false;
+
+            if (service === 'عمل بحث جامعي') {
                 yearInput.style.display = 'block';
                 yearInput.required = true;
-            } else {
-                yearInput.style.display = 'none';
-                yearInput.required = false;
+                subjectInput.style.display = 'block';
+                subjectInput.required = true;
+            } else if (service === 'بحث دبلومة') {
+                subjectInput.style.display = 'block';
+                subjectInput.required = true;
             }
         }
 
-        // إرسال الطلب
         document.getElementById('serviceForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('sendReqBtn');
             btn.innerText = 'جاري الإرسال...';
 
             const uni_code = document.getElementById('uniCode').value;
-            const college = document.getElementById('college').value;
+            let college = document.getElementById('college').value;
             const year = document.getElementById('year').value;
+            const subject = document.getElementById('subject').value;
+
+            // دمج اسم المادة مع الكلية حتى يظهر لك في لوحة الإدارة بدون تغيير الداتا بيز
+            if (subject !== '') {
+                college = college + ' | بحث/مادة: ' + subject;
+            }
 
             const { data, error } = await supabaseClient.from('requests').insert([
                 { 
@@ -114,7 +178,6 @@
             btn.innerText = 'إرسال الطلب للمراجعة';
         });
 
-        // جلب الطلبات وعرضها
         async function fetchRequests() {
             const { data, error } = await supabaseClient.from('requests')
                 .select('*').eq('national_id', studentData.national_id).order('created_at', { ascending: false });
@@ -123,11 +186,11 @@
             if (data && data.length > 0) {
                 list.innerHTML = '';
                 data.forEach(req => {
-                    let statusColor = req.status === 'قيد المراجعة' ? '#d97706' : '#16a34a'; 
+                    let statusColor = req.status === 'قيد المراجعة' ? '#d97706' : (req.status === 'مرفوض' ? '#dc2626' : '#16a34a'); 
                     list.innerHTML += `
                         <div class="request-card">
                             <p><strong>نوع الخدمة:</strong> ${req.service_type}</p>
-                            <p><strong>الكلية:</strong> ${req.college}</p>
+                            <p><strong>التفاصيل:</strong> ${req.college}</p>
                             <p><strong>حالة الطلب:</strong> <span style="color: ${statusColor}; font-weight: bold;">${req.status}</span></p>
                             <p><strong>رسوم الخدمة:</strong> <span>${req.fee}</span></p>
                         </div>
@@ -138,7 +201,6 @@
             }
         }
 
-        // تسجيل الخروج
         function logout() {
             localStorage.removeItem('studentData');
             window.location.href = 'index.html';
