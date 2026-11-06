@@ -1,0 +1,177 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Cairo', sans-serif;
+}
+
+body {
+    background-color: #f4f4f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    color: #333;
+}
+
+.container {
+    background-color: #fff;
+    width: 100%;
+    max-width: 450px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+    padding: 30px;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.header h1 {
+    color: #5b2c93; /* اللون البنفسجي الأساسي */
+    font-size: 28px;
+    margin-bottom: 5px;
+}
+
+.header p {
+    color: #777;
+    font-size: 14px;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+}
+
+.tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #888;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.tab-btn.active {
+    color: #5e2c94;
+    border-bottom: 3px solid #5e2c94;
+}
+
+.form-box {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-box input, .form-box select {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    outline: none;
+}
+
+.form-box input:focus {
+    border-color: #5b2c93;
+}
+
+.submit-btn {
+    background-color: #5b2c93;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.submit-btn:hover {
+    background-color: #5e2c94;
+}
+
+.payment-info {
+    margin-top: 25px;
+    text-align: center;
+    background-color: #f8f5fd;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px dashed #5b2c93;
+}
+
+.payment-info p {
+    font-size: 13px;
+    color: #444;
+    margin-bottom: 5px;
+}
+/* تنسيقات لوحة تحكم الطالب */
+.dashboard-container {
+    background-color: #fff;
+    width: 100%;
+    max-width: 600px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    padding: 30px;
+    margin: 20px;
+}
+
+.services-menu {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.service-btn {
+    background-color: #f8f5fd;
+    color: #5b2c93;
+    border: 2px solid #5b2c93;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    flex: 1;
+    min-width: 140px;
+}
+
+.service-btn:hover {
+    background-color: #5b2c93;
+    color: white;
+}
+
+.status-section {
+    margin-top: 30px;
+    border-top: 2px solid #eee;
+    padding-top: 20px;
+}
+
+.request-card {
+    background-color: #fafafa;
+    border-right: 4px solid #5b2c93;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.request-card p {
+    margin-bottom: 8px;
+    font-size: 15px;
+}
+
+.status.pending {
+    color: #d97706;
+    font-weight: bold;
+}
+
+.status.approved {
+    color: #16a34a;
+    font-weight: bold;
+}

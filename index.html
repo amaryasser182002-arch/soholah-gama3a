@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOHOLAH GAMA3A - منصة خدمات الطلاب</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <!-- استدعاء مكتبة Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>SOHOLAH GAMA3A</h1>
+            <p>بوابتك الذكية لجميع خدماتك الجامعية</p>
+        </div>
+
+        <div class="form-container">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">تسجيل الدخول</button>
+                <button class="tab-btn" onclick="switchTab('register')">إنشاء حساب</button>
+            </div>
+
+            <!-- نموذج تسجيل الدخول -->
+            <form id="loginForm" class="form-box active">
+                <input type="text" id="loginNationalId" placeholder="الرقم القومي" required>
+                <input type="password" id="loginPassword" placeholder="كلمة المرور" required>
+                <button type="submit" class="submit-btn" id="loginBtn">دخول</button>
+            </form>
+
+            <!-- نموذج إنشاء الحساب -->
+            <form id="registerForm" class="form-box" style="display: none;">
+                <input type="text" id="regName" placeholder="الاسم الرباعي" required>
+                <input type="text" id="regNationalId" placeholder="الرقم القومي (سيكون هو اسم المستخدم)" required>
+                <input type="email" id="regEmail" placeholder="البريد الإلكتروني" required>
+                <input type="tel" id="regPhone" placeholder="رقم الهاتف (للتواصل)" required>
+                <input type="password" id="regPassword" placeholder="كلمة المرور" required>
+                <button type="submit" class="submit-btn" id="regBtn">إنشاء الحساب الجديد</button>
+            </form>
+        </div>
+
+        <div class="payment-info">
+            <p>الخدمات مدعومة بالدفع عبر:</p>
+            <p><strong>فودافون كاش:</strong> 01023884009 | <strong>إنستا باي:</strong> 01500838008</p>
+        </div>
+    </div>
+
+    <script>
+        // إعداد الاتصال بـ Supabase (تم التصحيح هنا)
+        const supabaseUrl = 'https://pxbtwqdedcfrgqbqpaxg.supabase.co';
+        const supabaseKey = 'sb_publishable_0yuYpcLQlbC2vISnoPBY6w_nTgSIDIK';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // التبديل بين الدخول والتسجيل
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            if(tab === 'login') {
+                document.getElementById('loginForm').style.display = 'flex';
+                document.getElementById('registerForm').style.display = 'none';
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            } else {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'flex';
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            }
+        }
+
+        // إنشاء حساب جديد
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('regBtn');
+            btn.innerText = 'جاري الإنشاء...';
+
+            const name = document.getElementById('regName').value;
+            const national_id = document.getElementById('regNationalId').value;
+            const email = document.getElementById('regEmail').value;
+            const phone = document.getElementById('regPhone').value;
+            const password = document.getElementById('regPassword').value;
+
+            const { data, error } = await supabaseClient.from('students').insert([
+                { name, national_id, email, phone, password }
+            ]);
+
+            if (error) {
+                alert('حدث خطأ، ربما الرقم القومي مسجل بالفعل!');
+            } else {
+                alert('تم إنشاء الحساب بنجاح! قم بتسجيل الدخول الآن.');
+                document.getElementById('registerForm').reset();
+                switchTab('login');
+            }
+            btn.innerText = 'إنشاء الحساب الجديد';
+        });
+
+        // تسجيل الدخول
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            btn.innerText = 'جاري الدخول...';
+
+            const national_id = document.getElementById('loginNationalId').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const { data, error } = await supabaseClient.from('students')
+                .select('*').eq('national_id', national_id).eq('password', password).single();
+
+            if (data) {
+                // حفظ بيانات الطالب في المتصفح للانتقال للوحة التحكم
+                localStorage.setItem('studentData', JSON.stringify(data));
+                window.location.href = 'dashboard.html';
+            } else {
+                alert('الرقم القومي أو كلمة المرور غير صحيحة');
+            }
+            btn.innerText = 'دخول';
+        });
+    </script>
+</body>
+</html>

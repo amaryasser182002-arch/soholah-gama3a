@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الطالب - SOHOLAH GAMA3A</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1 id="welcomeMsg">مرحباً بك</h1>
+            <p>اختر الخدمة التي تريدها وتابع حالة طلبك</p>
+            <button onclick="logout()" style="background: none; border: none; color: #d90606; cursor: pointer; text-decoration: underline; margin-top: 10px;">تسجيل الخروج</button>
+        </div>
+
+        <!-- قائمة اختيار الخدمات -->
+        <div class="services-menu">
+            <button class="service-btn" onclick="showService('دفع المصروفات')">دفع المصروفات</button>
+            <button class="service-btn" onclick="showService('الكشف الطبي')">الكشف الطبي</button>
+            <button class="service-btn" onclick="showService('شراء كتب')">شراء كتب الجامعة</button>
+        </div>
+
+        <!-- نموذج طلب الخدمة -->
+        <div id="serviceFormContainer" class="form-container" style="display: none; margin-top: 20px;">
+            <h3 id="serviceTitle" style="color: #5b2c93; margin-bottom: 15px; text-align: center;"></h3>
+            <form id="serviceForm" class="form-box">
+                <input type="text" id="uniCode" placeholder="الكود الجامعي" required>
+                <input type="text" id="college" placeholder="الكلية" required>
+                <input type="text" id="year" placeholder="الفرقة الدراسية" style="display: none;">
+                
+                <button type="submit" class="submit-btn" id="sendReqBtn">إرسال الطلب للمراجعة</button>
+            </form>
+        </div>
+
+        <!-- قسم متابعة حالة الطلب -->
+        <div class="status-section">
+            <h3 style="color: #5b2c93; margin-bottom: 15px;">طلباتي الحالية</h3>
+            <div id="requestsList">
+                <p style="text-align: center; color: #777;">جاري تحميل الطلبات...</p>
+            </div>
+            
+            <div class="payment-info" style="margin-top: 15px;">
+                <p>بعد موافقة الإدارة وتحديد الرسوم، يرجى الدفع عبر:</p>
+                <p><strong>فودافون كاش:</strong> 01023884009 | <strong>إنستا باي:</strong> 01500838008</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // إعداد الاتصال بـ Supabase (تم التصحيح هنا)
+        const supabaseUrl = 'https://pxbtwqdedcfrgqbqpaxg.supabase.co';
+        const supabaseKey = 'sb_publishable_0yuYpcLQlbC2vISnoPBY6w_nTgSIDIK';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // التحقق من تسجيل الدخول
+        const studentData = JSON.parse(localStorage.getItem('studentData'));
+        if (!studentData) {
+            window.location.href = 'index.html'; 
+        } else {
+            document.getElementById('welcomeMsg').innerText = 'مرحباً بك، ' + studentData.name;
+            fetchRequests(); 
+        }
+
+        let currentService = '';
+
+        function showService(service) {
+            document.getElementById('serviceFormContainer').style.display = 'block';
+            const yearInput = document.getElementById('year');
+            const title = document.getElementById('serviceTitle');
+
+            currentService = service;
+            title.innerText = 'طلب: ' + service;
+            
+            if (service === 'شراء كتب') {
+                yearInput.style.display = 'block';
+                yearInput.required = true;
+            } else {
+                yearInput.style.display = 'none';
+                yearInput.required = false;
+            }
+        }
+
+        // إرسال الطلب
+        document.getElementById('serviceForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('sendReqBtn');
+            btn.innerText = 'جاري الإرسال...';
+
+            const uni_code = document.getElementById('uniCode').value;
+            const college = document.getElementById('college').value;
+            const year = document.getElementById('year').value;
+
+            const { data, error } = await supabaseClient.from('requests').insert([
+                { 
+                    national_id: studentData.national_id, 
+                    uni_code: uni_code, 
+                    college: college, 
+                    year: year, 
+                    service_type: currentService 
+                }
+            ]);
+
+            if (error) {
+                alert('حدث خطأ أثناء الإرسال');
+            } else {
+                alert('تم إرسال الطلب للمراجعة بنجاح!');
+                document.getElementById('serviceForm').reset();
+                document.getElementById('serviceFormContainer').style.display = 'none';
+                fetchRequests(); 
+            }
+            btn.innerText = 'إرسال الطلب للمراجعة';
+        });
+
+        // جلب الطلبات وعرضها
+        async function fetchRequests() {
+            const { data, error } = await supabaseClient.from('requests')
+                .select('*').eq('national_id', studentData.national_id).order('created_at', { ascending: false });
+
+            const list = document.getElementById('requestsList');
+            if (data && data.length > 0) {
+                list.innerHTML = '';
+                data.forEach(req => {
+                    let statusColor = req.status === 'قيد المراجعة' ? '#d97706' : '#16a34a'; 
+                    list.innerHTML += `
+                        <div class="request-card">
+                            <p><strong>نوع الخدمة:</strong> ${req.service_type}</p>
+                            <p><strong>الكلية:</strong> ${req.college}</p>
+                            <p><strong>حالة الطلب:</strong> <span style="color: ${statusColor}; font-weight: bold;">${req.status}</span></p>
+                            <p><strong>رسوم الخدمة:</strong> <span>${req.fee}</span></p>
+                        </div>
+                    `;
+                });
+            } else {
+                list.innerHTML = '<p style="text-align: center; color: #777;">لا توجد طلبات سابقة</p>';
+            }
+        }
+
+        // تسجيل الخروج
+        function logout() {
+            localStorage.removeItem('studentData');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

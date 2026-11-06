@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة - SOHOLAH GAMA3A</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* تنسيقات إضافية خاصة بلوحة الإدارة */
+        .admin-container {
+            max-width: 800px;
+        }
+        .admin-card {
+            background-color: #fcfcfc;
+            border: 1px solid #ddd;
+            border-right: 5px solid #5b2c93;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .admin-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .admin-input {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            flex: 1;
+            font-family: 'Cairo';
+        }
+        .btn-approve {
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-reject {
+            background-color: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        #loginAdmin {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 50px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container admin-container">
+        <div class="header">
+            <h1>لوحة الإدارة</h1>
+            <p>مراجعة طلبات الطلاب وتحديد الرسوم</p>
+        </div>
+
+        <!-- شاشة دخول المدير -->
+        <div id="loginAdmin">
+            <h3 style="text-align: center; color: #5b2c93;">تسجيل دخول الإدارة</h3>
+            <input type="password" id="adminPassword" class="admin-input" placeholder="كلمة مرور الإدارة">
+            <button class="submit-btn" onclick="checkAdmin()">دخول كمدير</button>
+        </div>
+
+        <!-- لوحة التحكم (تظهر بعد الدخول) -->
+        <div id="adminDashboard" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="color: #5b2c93;">جميع الطلبات</h3>
+                <button onclick="fetchAdminRequests()" style="background: #5b2c93; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">تحديث الصفحة</button>
+            </div>
+            
+            <div id="adminRequestsList">
+                <p style="text-align: center; color: #777;">جاري تحميل الطلبات...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // إعداد الاتصال بـ Supabase
+        const supabaseUrl = 'https://pxbtwqdedcfrgqbqpaxg.supabase.co';
+        const supabaseKey = 'sb_publishable_0yuYpcLQlbC2vISnoPBY6w_nTgSIDIK';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        // حماية بسيطة للوحة الإدارة
+        function checkAdmin() {
+            const pass = document.getElementById('adminPassword').value;
+            // كلمة مرور الإدارة هي: 123456 (يمكنك تغييرها كما تحب من هنا)
+            if (pass === '123456') {
+                document.getElementById('loginAdmin').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                fetchAdminRequests();
+            } else {
+                alert('كلمة المرور غير صحيحة!');
+            }
+        }
+
+        // جلب جميع الطلبات
+        async function fetchAdminRequests() {
+            const list = document.getElementById('adminRequestsList');
+            list.innerHTML = '<p style="text-align: center; color: #777;">جاري تحميل الطلبات...</p>';
+
+            const { data, error } = await supabaseClient.from('requests')
+                .select('*').order('created_at', { ascending: false });
+
+            if (data && data.length > 0) {
+                list.innerHTML = '';
+                data.forEach(req => {
+                    let statusColor = req.status === 'قيد المراجعة' ? '#d97706' : (req.status === 'مرفوض' ? '#dc2626' : '#16a34a');
+                    
+                    list.innerHTML += `
+                        <div class="admin-card">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                <p><strong>الخدمة:</strong> ${req.service_type}</p>
+                                <p><strong>الرقم القومي:</strong> ${req.national_id}</p>
+                                <p><strong>الكود الجامعي:</strong> ${req.uni_code}</p>
+                                <p><strong>الكلية:</strong> ${req.college}</p>
+                                ${req.year ? `<p><strong>الفرقة:</strong> ${req.year}</p>` : ''}
+                                <p><strong>الحالة:</strong> <span style="color: ${statusColor}; font-weight: bold;">${req.status}</span></p>
+                            </div>
+                            
+                            <div class="admin-actions">
+                                <input type="text" id="fee_${req.id}" class="admin-input" placeholder="اكتب الرسوم هنا (مثال: 500 جنيه)" value="${req.fee !== 'في انتظار التحديد' ? req.fee : ''}">
+                                <button class="btn-approve" onclick="updateRequest(${req.id}, 'تمت الموافقة - يرجى الدفع')">موافقة</button>
+                                <button class="btn-reject" onclick="updateRequest(${req.id}, 'مرفوض')">رفض</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                list.innerHTML = '<p style="text-align: center; color: #777;">لا توجد طلبات حتى الآن.</p>';
+            }
+        }
+
+        // تحديث حالة الطلب والرسوم
+        async function updateRequest(id, newStatus) {
+            const feeInput = document.getElementById(`fee_${id}`).value;
+            const finalFee = feeInput.trim() === '' ? 'لم يتم تحديد رسوم' : feeInput;
+
+            const { data, error } = await supabaseClient.from('requests')
+                .update({ status: newStatus, fee: finalFee })
+                .eq('id', id);
+
+            if (error) {
+                alert('حدث خطأ أثناء التحديث');
+            } else {
+                alert('تم تحديث الطلب بنجاح! سيراها الطالب في حسابه الآن.');
+                fetchAdminRequests(); // تحديث القائمة
+            }
+        }
+    </script>
+</body>
+</html>
